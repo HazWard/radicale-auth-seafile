@@ -1,5 +1,4 @@
 import requests
-from urllib.parse import urljoin
 from radicale.auth import BaseAuth
 
 class Auth(BaseAuth):
@@ -9,10 +8,11 @@ class Auth(BaseAuth):
             'username': user,
             'password': password,
         }
-        address = urljoin(str(server_address), '/api2/auth-token/')
-        print("Auth Address: " + address)
-        res = requests.post(address, data=data)
-        return int(res.status_code) == 200
-
-    def is_authenticated2(self, login, user, password):
-        return self.is_authenticated(user, password)
+        address = str(server_address).strip('/') + '/api2/auth-token/'
+        self.logger.info("Login attempt by {0} on '{1}'".format(user, address))
+        try:
+            res = requests.post(address, data=data)
+            return int(res.status_code) == 200
+        except Exception as error:
+            self.logger.error("Error while authenticating: " + str(error))
+            return False
